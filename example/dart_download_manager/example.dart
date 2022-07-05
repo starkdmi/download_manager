@@ -17,7 +17,6 @@ void main() async {
   // final url = "https://storage.googleapis.com/dart-archive/channels/stable/release/2.17.5/sdk/dartsdk-macos-arm64-release.zip";
   final url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   final request = manager.add(url);
-  print(request.progress);
   request.events.listen((event) {
     if (event is DownloadEvent) {
       print("event: $event");
