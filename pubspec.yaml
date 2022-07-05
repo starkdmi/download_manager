@@ -1,0 +1,18 @@
+name: isolated_download_manager # isolated_downloader
+description: Isolated files download manager with progress, cancellation, pause and resume
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=2.17.5 <3.0.0'
+
+dependencies:
+  downlow: 
+    # path: /Users/starkdmi/Code/Languages/Dart/downlow
+    git:
+      url: https://github.com/starkdmi/downlow
+      ref: single
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0
