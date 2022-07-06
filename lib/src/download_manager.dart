@@ -9,8 +9,13 @@ part 'package:isolated_download_manager/src/types/worker.dart';
 part 'package:isolated_download_manager/src/types/comm.dart';
 
 class DownloadManager {
+
+  /// Singletone
   DownloadManager._();
   static final DownloadManager instance = DownloadManager._();
+
+  /// Public constructor
+  DownloadManager();
 
   /// Current initialization status
   bool initialized = false;
@@ -43,7 +48,7 @@ class DownloadManager {
     _queue.clear();
 
     for (var worker in _workers) { 
-      worker.event(DownloadEvent.cancelled);
+      worker.event(DownloadState.cancelled);
       Future.delayed(const Duration(milliseconds: 100))
         .then((_) => worker.isolate.kill());
     }
@@ -59,32 +64,40 @@ class DownloadManager {
   final _queue = Queue<DownloadRequest>();
 
   /// Isolates references
-  final List<_Worker> _workers = [];
+  final List<Worker> _workers = [];
   final Set<int> _freeWorkersIndexes = {};
-  final Map<String, _Worker> _activeWorkers = {};
+  final Map<DownloadRequest, Worker> _activeWorkers = {};
 
   /// Add request to the queue
-  DownloadRequest add(String url) {
-    final request = DownloadRequest._(url: url);
+  /// if [path] is empty base [_directory] used
+  DownloadRequest download(String url, { String? path }) {
+    late final DownloadRequest request;
+    request = DownloadRequest._(
+      url: url,
+      path: path,
+      cancel: () { _cancel(request); },
+      resume: () { _resume(request); },
+      pause: () { _pause(request); }
+    );
     _queue.add(request);
-    request._controller.add(DownloadEvent.queued);
+    request._controller.add(DownloadState.queued);
     _processQueue();
     return request;
   }
 
   /// Removes request from the queue or sending cancellation request to isolate
-  void _cancel(String url) {
-    if (!_queue.remove(url)) {
+  void _cancel(DownloadRequest request) {
+    if (!_queue.remove(request)) {
       // if wasn't removed from queue due to absence
-      _activeWorkers[url]?.port.send(_WorkerCommand.cancel);
+      _activeWorkers[request]?.port.send(WorkerCommand.cancel);
     }
   }
 
   /// Send pause request to isolate if exists 
-  void _pause(String url) => _activeWorkers[url]?.port.send(_WorkerCommand.pause);
+  void _pause(DownloadRequest request) => _activeWorkers[request]?.port.send(WorkerCommand.pause);
 
   /// Send resume request to isolate if exists 
-  void _resume(String url) => _activeWorkers[url]?.port.send(_WorkerCommand.resume);
+  void _resume(DownloadRequest request) => _activeWorkers[request]?.port.send(WorkerCommand.resume);
 
   /// Process queued requests
   void _processQueue() {
@@ -92,14 +105,23 @@ class DownloadManager {
       // request
       final request = _queue.removeFirst();
       final link = request.url;
+      final path = request.path;
+
+      // data 
+      final Map<String, String> data = {
+        "url": link,
+        if (path != null) "path": path
+      };
 
       // worker
       final index = _freeWorkersIndexes.first;
       _freeWorkersIndexes.remove(index);
       final worker = _workers[index];
       worker.request = request;
-      worker.port.send(link);
-      _activeWorkers[link] = worker;
+
+      // proceed
+      worker.port.send(data);
+      _activeWorkers[request] = worker;
     }
   }
 
@@ -119,48 +141,48 @@ class DownloadManager {
   }
 
   /// Initialize long running isolate with two-way communication channel
-  Future<_Worker> _initWorker({ required int index }) async {
-    final completer = Completer<_Worker>();
+  Future<Worker> _initWorker({ required int index }) async {
+    final completer = Completer<Worker>();
     final mainPort = ReceivePort();
     late final Isolate isolate;
 
-    _Worker? process;
+    Worker? process;
     mainPort.listen((event) {
       if (event is SendPort) {
         // port received after isolate is ready (once)
-        process = _Worker(isolate: isolate, port: event);
+        process = Worker(isolate: isolate, port: event);
         completer.complete(process);
       } else if (event is Exception) {
         // errors 
         process?.error(event);
         _cleanWorker(index);
-      } else if (event is DownloadEvent) {
+      } else if (event is DownloadState) {
         // other incoming messages from isolate 
         switch (event) {
-          case DownloadEvent.cancelled:
+          case DownloadState.cancelled:
             process?.event(event);
             _cleanWorker(index);
             process?.request?.isCancelled = true;
             break;
-          case DownloadEvent.finished:
+          case DownloadState.finished:
             process?.event(event);
             _cleanWorker(index);
             break;
-          case DownloadEvent.started:
+          case DownloadState.started:
             process?.event(event);
             break;
-          case DownloadEvent.resumed:
+          case DownloadState.resumed:
             process?.event(event);
             process?.request?.isPaused = false;
             break;
-          case DownloadEvent.paused:
+          case DownloadState.paused:
             process?.event(event);
             process?.request?.isPaused = true;
             break;
           default: break;
         }
       } else if (event is double) {
-        // progress events
+        // states
         process?.event(event);
         process?.request?.progress = event;
       }
@@ -179,49 +201,65 @@ class DownloadManager {
     downlow.DownloadController? task;
     double previousProgress = -1.0;
     isolatePort.listen((event) {
-      if (event is String) {
-        // url to download
-        final uri = Uri.parse(event);
-        final lastSegment = uri.pathSegments.last;
-        final filename = lastSegment.substring(lastSegment.lastIndexOf("/") + 1);
+      if (event is Map<String, String>) {
+        // download info
+        try {
+          final String url = event["url"]!;
+          final String? path = event["path"];
 
-        final file = File("$directory/$filename");
-
-        final options = downlow.DownloadOptions(
-          file: file,
-          deleteOnCancel: true,
-          progressCallback: (current, total) {
-            final progress = (current / total * 100).ceilToDouble();
-            // skip duplicates
-            if (previousProgress != progress) {
-              sendPort.send(progress);
-              previousProgress = progress;
-            }
-          },
-          onDone: () {
-            sendPort.send(DownloadEvent.finished);
+          final File file;
+          if (path == null) {
+            // use base directory, extract name from url
+            final uri = Uri.parse(url);
+            final lastSegment = uri.pathSegments.last;
+            final filename = lastSegment.substring(lastSegment.lastIndexOf("/") + 1);
+            file = File("$directory/$filename");
+          } else {
+            // custom location
+            file = File(path);
+            // final filename = file.uri.pathSegments.last;
           }
-        );
-        previousProgress = -1.0;
-        
-        // run zoned to catch download errors without breaking isolate
-        runZonedGuarded(() async {
-          await downlow.download(event, options)
-            .then((controller) => task = controller)
-            .then((_) => sendPort.send(DownloadEvent.started));
-        }, (e, s) => sendPort.send(e));  
 
-      } else if (event is _WorkerCommand) {
+          final options = downlow.DownloadOptions(
+            file: file,
+            deleteOnCancel: true,
+            progressCallback: (current, total) {
+              final progress = (current / total * 100).ceilToDouble();
+              // skip duplicates
+              if (previousProgress != progress) {
+                sendPort.send(progress);
+                previousProgress = progress;
+              }
+            },
+            onDone: () {
+              sendPort.send(DownloadState.finished);
+            }
+          );
+          
+          previousProgress = -1.0;
+          
+          // run zoned to catch async download excaptions without breaking isolate
+          runZonedGuarded(() async {
+            await downlow.download(url, options)
+              .then((controller) => task = controller)
+              .then((_) => sendPort.send(DownloadState.started));
+          }, (e, s) => sendPort.send(e));  
+          
+        } catch (error) {
+          // catch sync exception
+          sendPort.send(error);
+        }
+      } else if (event is WorkerCommand) {
         // control events
         switch (event) {
-          case _WorkerCommand.pause:
-            task?.pause().then((_) => sendPort.send(DownloadEvent.paused));
+          case WorkerCommand.pause:
+            task?.pause().then((_) => sendPort.send(DownloadState.paused));
             break;
-          case _WorkerCommand.resume:
-            task?.resume().then((_) => sendPort.send(DownloadEvent.resumed));
+          case WorkerCommand.resume:
+            task?.resume().then((_) => sendPort.send(DownloadState.resumed));
             break;
-          case _WorkerCommand.cancel:
-            task?.cancel().then((_) => sendPort.send(DownloadEvent.cancelled));
+          case WorkerCommand.cancel:
+            task?.cancel().then((_) => sendPort.send(DownloadState.cancelled));
             break;
         }
       }
