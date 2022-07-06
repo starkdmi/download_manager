@@ -134,7 +134,7 @@ class DownloadManager {
       // worker.event(DownloadEvents.finished);
       worker.request?._controller.close();
     } 
-    _activeWorkers.remove(worker.request?.url);
+    _activeWorkers.remove(worker.request);
     worker.request = null;
     _freeWorkersIndexes.add(index);
     _processQueue();
