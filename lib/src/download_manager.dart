@@ -224,7 +224,9 @@ class DownloadManager {
             file: file,
             deleteOnCancel: true,
             progressCallback: (current, total) {
-              final progress = (current / total * 100).ceilToDouble();
+              // final progress = (current / total * 100).ceilToDouble();
+              final progress = double.parse((current / total).toStringAsFixed(2));
+
               // skip duplicates
               if (previousProgress != progress) {
                 sendPort.send(progress);

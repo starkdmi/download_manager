@@ -18,7 +18,7 @@ class DownloadRequest {
   bool isCancelled = false;
 
   /// Progress with ceiling
-  /// `-1.0` for queued process and values in range [0.0, 100.0]
+  /// `-1.0` for queued process and values in range [0.0, 1.0]
   double progress = -1.0;
   
   /// Stream controller used to forward isolate events to user

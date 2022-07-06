@@ -43,7 +43,7 @@ void main() async {
           break;
       }*/
     } else if (event is double) {
-      print("progress: $event%");
+      print("progress: ${event * 100}%");
     }
   }, onError: (error) {
     print("error $error");
