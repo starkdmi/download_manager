@@ -36,6 +36,7 @@ class DownloadRequest {
   void resume() {
     if (isPaused && !isCancelled) {
       _resume();
+      isPaused = false;
     }
   }
 
@@ -43,6 +44,7 @@ class DownloadRequest {
   void pause() {
     if (!isPaused && !isCancelled) {
       _pause();
+      isPaused = true;
     }
   }
 }
