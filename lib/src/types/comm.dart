@@ -10,7 +10,7 @@ enum WorkerCommand {
 
 /// Stream return types
 /// Errors will be send as throw 
-/// progress send as double [0.0, 100.0]
+/// progress send as double [0.0, 1.0]
 /// other events are part of [DownloadState]
 enum DownloadState {
   queued, started, paused, resumed, cancelled, finished
