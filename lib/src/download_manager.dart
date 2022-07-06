@@ -87,8 +87,12 @@ class DownloadManager {
 
   /// Removes request from the queue or sending cancellation request to isolate
   void _cancel(DownloadRequest request) {
-    if (!_queue.remove(request)) {
-      // if wasn't removed from queue due to absence
+    if (_queue.remove(request)) {
+      // removed
+      request._controller.add(DownloadState.cancelled);
+      request.isCancelled = true;
+    } else {
+      // wasn't removed, already in progress
       _activeWorkers[request]?.port.send(WorkerCommand.cancel);
     }
   }
