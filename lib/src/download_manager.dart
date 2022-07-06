@@ -255,13 +255,19 @@ class DownloadManager {
         // control events
         switch (event) {
           case WorkerCommand.pause:
-            task?.pause().then((_) => sendPort.send(DownloadState.paused));
+            if (task?.isCancelled == false && task?.isDownloading == true) {
+              task?.pause().then((_) => sendPort.send(DownloadState.paused));
+            }
             break;
           case WorkerCommand.resume:
-            task?.resume().then((_) => sendPort.send(DownloadState.resumed));
+            if (task?.isCancelled == false && task?.isDownloading == false) {
+              task?.resume().then((_) => sendPort.send(DownloadState.resumed));
+            }
             break;
           case WorkerCommand.cancel:
-            task?.cancel().then((_) => sendPort.send(DownloadState.cancelled));
+            if (task?.isCancelled == false) {
+              task?.cancel().then((_) => sendPort.send(DownloadState.cancelled));
+            }
             break;
         }
       }
