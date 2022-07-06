@@ -15,14 +15,23 @@ void main() async {
   await manager.init(isolates: 1, directory: directory);
   await Future.delayed(const Duration(seconds: 1));
 
-  void dispose() {
+  // Download
+  // final request = manager.download(links[2]);
+  final request = manager.download(links[1], path: "$directory/dart.zip");
+
+  void dispose() async {
     // Clean-up isolates
     manager.dispose().then((_) => exit(0));
-  }
 
-  // Download
-  final request = manager.download(links[2]);
-  // final request = manager.download(links[1], path: "$directory/dart.zip");
+    // Optionally delete file
+    /*final path = request.path;
+    if (!request.isCancelled && path != null) {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }*/
+  }
   
   // Progress
   request.events.listen((event) {
@@ -43,7 +52,7 @@ void main() async {
           break;
       }*/
     } else if (event is double) {
-      print("progress: ${event * 100}%");
+      print("progress: ${(event * 100.0).toStringAsFixed(0)}%");
     }
   }, onError: (error) {
     print("error $error");
@@ -54,11 +63,11 @@ void main() async {
   });
 
   // Methods
-  await Future.delayed(const Duration(milliseconds: 1000));
-  request.pause();
-  await Future.delayed(const Duration(milliseconds: 1000));
-  request.resume();
-  // await Future.delayed(const Duration(milliseconds: 1000));
+  // await Future.delayed(const Duration(milliseconds: 2000));
+  // request.pause();
+  // await Future.delayed(const Duration(milliseconds: 2000));
+  // request.resume();
+  // await Future.delayed(const Duration(milliseconds: 5000));
   // request.cancel();
 
   // Properties
