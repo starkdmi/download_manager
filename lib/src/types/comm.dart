@@ -4,14 +4,14 @@ part of 'package:isolated_download_manager/src/download_manager.dart';
 /// User <-> DownloadManager <-> Isolate
 
 /// Isolate commands
-enum _WorkerCommand {
+enum WorkerCommand {
   cancel, pause, resume
 }
 
 /// Stream return types
 /// Errors will be send as throw 
 /// progress send as double [0.0, 100.0]
-/// other events are part of [DownloadEvent]
-enum DownloadEvent {
+/// other events are part of [DownloadState]
+enum DownloadState {
   queued, started, paused, resumed, cancelled, finished
 }

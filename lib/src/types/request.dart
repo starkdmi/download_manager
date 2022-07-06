@@ -3,8 +3,9 @@ part of 'package:isolated_download_manager/src/download_manager.dart';
 /// Request created by adding url to downloading queue
 /// Used for communication with [DownloadManager] and internally [Isolate]
 class DownloadRequest {
-  DownloadRequest._({ required this.url });
+  DownloadRequest._({ required this.url, this.path, required this.cancel, required this.resume, required this.pause });
   String url;
+  String? path;
 
   bool isPaused = false;
   bool isCancelled = false;
@@ -17,7 +18,7 @@ class DownloadRequest {
   final StreamController<dynamic> _controller = StreamController<dynamic>();
   Stream<dynamic> get events => _controller.stream;
 
-  void cancel() => DownloadManager.instance._cancel(url);
-  void resume() => DownloadManager.instance._resume(url);
-  void pause() => DownloadManager.instance._pause(url);
+  Function() cancel;
+  Function() resume;
+  Function() pause;
 }
