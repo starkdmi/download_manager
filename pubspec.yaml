@@ -1,5 +1,5 @@
 name: isolated_download_manager # isolated_downloader
-description: Isolated files download manager with progress, cancellation, pause and resume
+description: File download manager based on reusable isolates with progress, cancellation, pause and resume
 version: 1.0.0
 publish_to: 'none'
 
