@@ -36,7 +36,8 @@ dependencies:
     #   url: https://github.com/starkdmi/download_manager
     #   ref: main
   open_file: ^3.2.1
-  flutter_slidable: ^1.3.0
+  # permission_handler: ^10.0.0
+  # file_picker: ^4.6.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
