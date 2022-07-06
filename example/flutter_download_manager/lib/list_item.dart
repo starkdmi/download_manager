@@ -27,7 +27,7 @@ class _DownloadItemState extends State<DownloadItem> {
       return ItemWidget(
         name: widget.name, 
         state: ProgressState.initial, 
-        buttonRight: ButtonWidget(onPressed: _download, icon: Icons.downloading_rounded)
+        buttonRight: ButtonWidget(onPressed: _download, icon: Icons.downloading_rounded) // download_rounded
       );
     }
 
@@ -38,8 +38,8 @@ class _DownloadItemState extends State<DownloadItem> {
           return ItemWidget(
             name: widget.name, 
             state: ProgressState.failed, 
-            buttonRight: ButtonWidget(onPressed: _download, icon: Icons.replay_rounded)
-          ); // play_circle_rounded
+            buttonRight: ButtonWidget(onPressed: _download, icon: Icons.replay_rounded) // sync_rounded
+          );
         }
 
         if (snapshot.hasData) {
@@ -57,6 +57,11 @@ class _DownloadItemState extends State<DownloadItem> {
 
           switch (data as DownloadState) {
             case DownloadState.queued:
+              return ItemWidget(
+                name: widget.name, 
+                state: ProgressState.queued,
+                buttonLeft: ButtonWidget(onPressed: _cancel, icon: Icons.close_rounded),
+              );
             case DownloadState.started:
             case DownloadState.resumed:
               return ItemWidget(
@@ -78,7 +83,7 @@ class _DownloadItemState extends State<DownloadItem> {
               return ItemWidget(
                 name: widget.name, 
                 state: ProgressState.initial, 
-                buttonRight: ButtonWidget(onPressed: _download, icon: Icons.downloading_rounded)
+                buttonRight: ButtonWidget(onPressed: _download, icon: Icons.downloading_rounded) // download_rounded
               );
             case DownloadState.finished:
               return ItemWidget(
@@ -95,13 +100,20 @@ class _DownloadItemState extends State<DownloadItem> {
         return ItemWidget(
           name: widget.name, 
           state: ProgressState.initial, 
-          buttonRight: ButtonWidget(onPressed: _download, icon: Icons.downloading_rounded)
+          buttonRight: ButtonWidget(onPressed: _download, icon: Icons.downloading_rounded) // download_rounded
         );
       },
     );
   }
   
-  String get path => "${Setup.directory}/${widget.name}";
+  String get path {
+    final uri = Uri.parse(widget.url);
+    final lastSegment = uri.pathSegments.last;
+    final filename = lastSegment.substring(lastSegment.lastIndexOf("/") + 1);
+    final extension = filename.split(".").last;
+    return "${Setup.directory}/${widget.name}.$extension";
+  }
+
   void _download() => setState(() => _request = DownloadManager.instance.download(widget.url, path: path));
   void _pause() => _request?.pause();
   void _resume() => _request?.resume();

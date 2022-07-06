@@ -28,6 +28,8 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
+  final items = Setup.links.entries;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,11 +39,14 @@ class _HomeState extends State<Home> {
           IconButton(onPressed: _reset, icon: const Icon(Icons.replay_rounded)) // restore
         ],
       ),
-      // body: Column(children: [
-      body: const Center(child: 
-        DownloadItem(name: "GoLang", url: Setup.url),
+      body: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items.elementAt(index);
+          return DownloadItem(name: item.key, url: item.value);
+        }
       )
-      // ]),
     );
   }
 

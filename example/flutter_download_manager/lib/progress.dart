@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 
 enum ProgressState {
-  initial, failed, downloading, paused, downloaded
+  initial, queued, failed, downloading, paused, downloaded
 }
 
 class ProgressWidget extends StatelessWidget {
@@ -17,6 +17,10 @@ class ProgressWidget extends StatelessWidget {
     switch (state) {
       case ProgressState.initial:
         progressText = "Not started";
+        break;
+      case ProgressState.queued:
+        progressText = "Queued";
+        progressWidget = const Icon(Icons.menu_rounded, size: 18);
         break;
       case ProgressState.failed:
         progressText = "Downloading failed";

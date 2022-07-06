@@ -25,6 +25,7 @@ class ItemWidget extends StatelessWidget {
         contentPadding: const EdgeInsets.only(left: 24, right: 16),
         title: Text(name), 
         subtitle: ProgressWidget(state: state, progress: progress),
+        // leading: Image(logo),
         trailing: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
           SizedBox(width: 64, child: Center(child: buttonLeft)),
           SizedBox(width: 64, child: Center(child: buttonRight)),
