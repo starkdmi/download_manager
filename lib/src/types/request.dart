@@ -6,10 +6,10 @@ class DownloadRequest {
   DownloadRequest._({ 
     required this.url, 
     this.path, 
-    required this.cancel, 
-    required this.resume, 
-    required this.pause,
-  });
+    required void Function() cancel,
+    required void Function() resume,
+    required void Function() pause,
+  }) : _cancel = cancel, _resume = resume, _pause = pause;
 
   String url;
   String? path;
@@ -25,7 +25,24 @@ class DownloadRequest {
   final StreamController<dynamic> _controller = StreamController<dynamic>();
   Stream<dynamic> get events => _controller.stream;
 
-  void Function() cancel;
-  void Function() resume;
-  void Function() pause;
+  final void Function() _cancel;
+  void cancel() {
+    if (!isCancelled) {
+      _cancel();
+    }
+  }
+
+  final void Function() _resume;
+  void resume() {
+    if (isPaused && !isCancelled) {
+      _resume();
+    }
+  }
+
+  final void Function() _pause;
+  void pause() {
+    if (!isPaused && !isCancelled) {
+      _pause();
+    }
+  }
 }
