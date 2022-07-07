@@ -1,4 +1,4 @@
-name: flutter_download_manager
+name: flutter_download_manager_example
 description: Isolated Download Manager Example
 
 # The following line prevents the package from being accidentally published to
@@ -31,14 +31,20 @@ dependencies:
     sdk: flutter
 
   isolated_download_manager: 
-    path: /Users/starkdmi/Code/Languages/Dart/download_manager
+    path: ../../
     # git:
     #   url: https://github.com/starkdmi/download_manager
     #   ref: main
-  open_file: ^3.2.1
-  # permission_handler: ^10.0.0
-  # file_picker: ^4.6.1
 
+  flutter_download_manager:
+    path: /Users/starkdmi/Code/Languages/Dart/download_manager_flutter
+    # git:
+    #   url: https://github.com/starkdmi/flutter_download_manager
+    #   ref: main
+  
+  path_provider: ^2.0.11
+  open_file: ^3.2.1
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2

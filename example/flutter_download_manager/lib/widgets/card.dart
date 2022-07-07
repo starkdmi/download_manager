@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_download_manager/button.dart';
-import 'package:flutter_download_manager/progress.dart';
+import 'package:flutter_download_manager/download_manager_flutter.dart';
+import 'package:flutter_download_manager_example/widgets/button.dart';
+import 'package:flutter_download_manager_example/widgets/progress.dart';
 
-class ItemWidget extends StatelessWidget {
-  const ItemWidget({ 
+class CardWidget extends StatelessWidget {
+  const CardWidget({ 
     super.key, 
     required this.name, 
     required this.state, 
@@ -13,7 +14,7 @@ class ItemWidget extends StatelessWidget {
   }) : super();
 
   final String name;
-  final ProgressState state;
+  final DownloadWidgetState state;
   final double? progress;
   final ButtonWidget? buttonLeft;
   final ButtonWidget? buttonRight;

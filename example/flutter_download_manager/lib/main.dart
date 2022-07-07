@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_download_manager/app.dart';
+import 'package:flutter_download_manager_example/screens/setup.dart';
+import 'package:flutter_download_manager_example/screens/list.dart';
+import 'package:flutter_download_manager_example/globals.dart';
 
-void main() {
+void main() async {
 
-  // TODO 
-  // 1. Check if file already exists (now progress automatically continues if file exist but initial state is - not started)
-  // 2. Home()._reset() action button
-  // 3. permission_handler
-  // 4. Setup()
-  // - isolates count
-  // - directory picker 
-  // 5. Global static class to separate UI from Core, all calls to DM from here
+  // TODO delete file on error in `downlow` !
 
-  runApp(const App());
+  // TODO simple flutter example where loading indicator with cancel (no pause)
+
+  // TODO move flutter example to flutter_downloader_manager and add link to dart github
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Globals.init();
+  runApp(const DemoApp());
+}
+
+class DemoApp extends StatelessWidget {
+  const DemoApp({ super.key }) : super();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "Download Manager",
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        // colorScheme: ColorScheme.fromSeed(seedColor: Colors.red.shade400) 
+      ),
+      initialRoute: "/",
+      routes: {
+        "/": (context) => const Setup(),
+        "/home": (context) => const DownloadList(),
+      },
+    );
+  }
 }

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-
-
-enum ProgressState {
-  initial, queued, failed, downloading, paused, downloaded
-}
+import 'package:flutter_download_manager/download_manager_flutter.dart';
 
 class ProgressWidget extends StatelessWidget {
   const ProgressWidget({ super.key, required this.state, this.progress }) : super();
-  final ProgressState state;
+  final DownloadWidgetState state;
   final double? progress;
 
   @override
@@ -15,18 +11,18 @@ class ProgressWidget extends StatelessWidget {
     final String progressText;
     Widget? progressWidget;
     switch (state) {
-      case ProgressState.initial:
+      case DownloadWidgetState.initial:
         progressText = "Not started";
         break;
-      case ProgressState.queued:
+      case DownloadWidgetState.queued:
         progressText = "Queued";
         progressWidget = const Icon(Icons.menu_rounded, size: 18);
         break;
-      case ProgressState.failed:
-        progressText = "Downloading failed";
+      case DownloadWidgetState.failed:
+        progressText = "Failed to download";
         progressWidget = const Icon(Icons.error_rounded, size: 18);
         break;
-      case ProgressState.downloading:
+      case DownloadWidgetState.downloading:
         if (progress == null) {
           progressText = "Downloading";
           progressWidget = const SizedBox(height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey)
@@ -41,20 +37,20 @@ class ProgressWidget extends StatelessWidget {
           );
         }
         break;
-      case ProgressState.paused:
+      case DownloadWidgetState.paused:
         progressText = "Paused ${formatProgress(progress)}";
         progressWidget = const Icon(Icons.pause, size: 18);
         // progressWidget = const SizedBox();
         break;
-      case ProgressState.downloaded:
+      case DownloadWidgetState.downloaded:
         progressText = "Downloaded";
         progressWidget = const Icon(Icons.done_rounded, size: 18);
         break;
     }
 
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      if (state != ProgressState.initial) SizedBox(width: 12, child: progressWidget),
-      if (state != ProgressState.initial) const SizedBox(width: 8), 
+      if (state != DownloadWidgetState.initial) SizedBox(width: 12, child: progressWidget),
+      if (state != DownloadWidgetState.initial) const SizedBox(width: 8), 
       Text(progressText), 
     ]);
   }
