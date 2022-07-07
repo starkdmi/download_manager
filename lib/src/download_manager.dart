@@ -67,6 +67,8 @@ class DownloadManager {
 
   /// Queue of requests 
   final _queue = Queue<DownloadRequest>();
+  /// Queued requests (unmodifiable)
+  List<DownloadRequest> get queue => _queue.toList();
 
   /// Isolates references
   final List<Worker> _workers = [];
