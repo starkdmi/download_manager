@@ -4,13 +4,6 @@ import 'package:flutter_download_manager_example/screens/list.dart';
 import 'package:flutter_download_manager_example/globals.dart';
 
 void main() async {
-
-  // TODO delete file on error in `downlow` !
-
-  // TODO simple flutter example where loading indicator with cancel (no pause)
-
-  // TODO move flutter example to flutter_downloader_manager and add link to dart github
-
   WidgetsFlutterBinding.ensureInitialized();
   await Globals.init();
   runApp(const DemoApp());
