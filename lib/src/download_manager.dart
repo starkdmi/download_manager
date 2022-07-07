@@ -42,16 +42,21 @@ class DownloadManager {
     }
 
     initialized = true;
+    _processQueue();
   }
 
   Future<void> dispose() async {
     _queue.clear();
 
     for (var worker in _workers) { 
-      worker.event(DownloadState.cancelled);
+      worker.isolate.kill();
+    }
+    _activeWorkers.forEach((request, worker) { 
+      Future.delayed(const Duration(milliseconds: 50))
+        .then((_) => worker.port.send(WorkerCommand.cancel));
       Future.delayed(const Duration(milliseconds: 100))
         .then((_) => worker.isolate.kill());
-    }
+    });
     await Future.delayed(const Duration(milliseconds: 100));
     _workers.clear();
     _activeWorkers.clear();
@@ -83,6 +88,15 @@ class DownloadManager {
     request._controller.add(DownloadState.queued);
     _processQueue();
     return request;
+  }
+
+  /// Clear the queue and cancel all active requests
+  void cancelAll() {
+    _queue.clear();
+
+    for (var worker in _activeWorkers.entries) { 
+      worker.value.event(DownloadState.cancelled);
+    }
   }
 
   /// Removes request from the queue or sending cancellation request to isolate
