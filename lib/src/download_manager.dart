@@ -91,12 +91,24 @@ class DownloadManager {
   }
 
   /// Clear the queue and cancel all active requests
-  void cancelAll() {
+  void cancelAll() async {
+    final requests = _queue.toList();
     _queue.clear();
-
-    for (var worker in _activeWorkers.entries) { 
-      worker.value.event(DownloadState.cancelled);
+    for (var request in requests) {
+      request._controller.add(DownloadState.cancelled);
+      request.isCancelled = true;
     }
+    _activeWorkers.forEach((request, worker) { 
+      worker.port.send(WorkerCommand.cancel);
+      // ensure if wasn't cancelled due to pre-started downloading state
+      for (final delay in [500, 1000, 1500]) {
+        Future.delayed(Duration(milliseconds: delay)).then((_) {
+          if (worker.request == request) {
+            worker.port.send(WorkerCommand.cancel);
+          }
+        });
+      }
+    });
   }
 
   /// Removes request from the queue or sending cancellation request to isolate
