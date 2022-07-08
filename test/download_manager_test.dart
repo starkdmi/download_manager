@@ -14,6 +14,10 @@ void main() {
       await manager.dispose();
     });
 
+    // To take control of isolates use
+    // import 'package:meta/meta.dart'; // meta 1.8.0
+    // @visibleForTesting final int value;
+
     test("Initialized", () {
       expect(manager.initialized, isTrue);
     });
