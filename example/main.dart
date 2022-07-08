@@ -74,4 +74,7 @@ void main() async {
   // print(request.progress);
   // print(request.isPaused);
   // print(request.isCancelled);
+
+  // List queued requests 
+  // print(manager.queue)
 }
