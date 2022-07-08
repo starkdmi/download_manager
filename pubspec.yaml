@@ -8,10 +8,10 @@ environment:
 
 dependencies:
   downlow: 
-    # path: /Users/starkdmi/Code/Languages/Dart/downlow
-    git:
-      url: https://github.com/starkdmi/downlow
-      ref: single
+    path: /Users/starkdmi/Code/Languages/Dart/downlow
+    # git:
+    #   url: https://github.com/starkdmi/downlow
+    #   ref: single
 
 dev_dependencies:
   lints: ^2.0.0
