@@ -7,11 +7,11 @@ environment:
   sdk: '>=2.17.5 <3.0.0'
 
 dependencies:
-  downlow: 
-    path: /Users/starkdmi/Code/Languages/Dart/downlow
+  download_task: 
+    path: /Users/starkdmi/Code/Languages/Dart/resumable_download
     # git:
-    #   url: https://github.com/starkdmi/downlow
-    #   ref: single
+    #   url: https://github.com/starkdmi/resumable_download
+    #   ref: main
 
 dev_dependencies:
   lints: ^2.0.0

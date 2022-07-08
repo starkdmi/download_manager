@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
-import 'package:downlow/downlow.dart' as downlow;
+import 'package:download_task/download_task.dart';
 
 part 'package:isolated_download_manager/src/types/request.dart';
 part 'package:isolated_download_manager/src/types/worker.dart';
@@ -230,20 +230,19 @@ class DownloadManager {
     final isolatePort = ReceivePort();
     final directory = _directory ?? "/tmp";
     
-    downlow.DownloadController? task;
+    DownloadTask? task;
     double previousProgress = -1.0;
     isolatePort.listen((event) {
       if (event is Map<String, String>) {
         // download info
         try {
-          final String url = event["url"]!;
+          final Uri url = Uri.parse(event["url"]!);
           final String? path = event["path"];
 
           final File file;
           if (path == null) {
             // use base directory, extract name from url
-            final uri = Uri.parse(url);
-            final lastSegment = uri.pathSegments.last;
+            final lastSegment = url.pathSegments.last;
             final filename = lastSegment.substring(lastSegment.lastIndexOf("/") + 1);
             file = File("$directory/$filename");
           } else {
@@ -251,31 +250,48 @@ class DownloadManager {
             file = File(path);
             // final filename = file.uri.pathSegments.last;
           }
-
-          final options = downlow.DownloadOptions(
-            file: file,
-            deleteOnCancel: true,
-            progressCallback: (current, total) {
-              final progress = (current / total * 100).floorToDouble() / 100;
-
-              // skip duplicates
-              if (previousProgress != progress) {
-                sendPort.send(progress);
-                previousProgress = progress;
-              }
-            },
-            onDone: () {
-              sendPort.send(DownloadState.finished);
-            }
-          );
-          
           previousProgress = -1.0;
           
           // run zoned to catch async download excaptions without breaking isolate
           runZonedGuarded(() async {
-            await downlow.download(url, options)
-              .then((controller) => task = controller)
-              .then((_) => sendPort.send(DownloadState.started));
+            await DownloadTask.download(url, file: file, deleteOnCancel: true).then((t) {
+              task = t;
+              task!.events.listen((event) { 
+                switch (event.state) {
+                  case TaskState.downloading:
+                    final bytesReceived = event.bytesReceived!;
+                    final totalBytes = event.totalBytes!;
+                    
+                    double progress;
+                    if (totalBytes == -1) {
+                      // total is undefined
+                      progress = 0.0;
+                    } else {
+                      progress = (bytesReceived / totalBytes * 100).floorToDouble() / 100;
+                    }
+
+                    // skip duplicates
+                    if (previousProgress != progress) {
+                      sendPort.send(progress);
+                      previousProgress = progress;
+                    }
+                    break;
+                  case TaskState.paused:
+                    sendPort.send(DownloadState.paused);
+                    break;
+                  case TaskState.success:
+                    sendPort.send(DownloadState.finished);
+                    break;
+                  case TaskState.canceled:
+                    sendPort.send(DownloadState.cancelled);
+                    break;
+                  case TaskState.error:
+                    sendPort.send(event.error!);
+                    break;
+                }
+              });
+              sendPort.send(DownloadState.started);
+            });
           }, (e, s) => sendPort.send(e));  
           
         } catch (error) {
@@ -286,19 +302,15 @@ class DownloadManager {
         // control events
         switch (event) {
           case WorkerCommand.pause:
-            if (task?.isCancelled == false && task?.isDownloading == true) {
-              task?.pause().then((_) => sendPort.send(DownloadState.paused));
-            }
+            task?.pause();
             break;
           case WorkerCommand.resume:
-            if (task?.isCancelled == false && task?.isDownloading == false) {
-              task?.resume().then((_) => sendPort.send(DownloadState.resumed));
-            }
+            task?.resume().then((status) {
+              if (status) sendPort.send(DownloadState.resumed);
+            });
             break;
           case WorkerCommand.cancel:
-            if (task?.isCancelled == false) {
-              task?.cancel().then((_) => sendPort.send(DownloadState.cancelled));
-            }
+            task?.cancel();
             break;
         }
       }
