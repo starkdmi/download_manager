@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
 import 'package:download_task/download_task.dart';
+import 'package:http/http.dart' as http;
 
 part 'package:isolated_download_manager/src/types/request.dart';
 part 'package:isolated_download_manager/src/types/worker.dart';
@@ -23,15 +24,19 @@ class DownloadManager {
   /// Base directory where to save files
   String? _directory; 
 
+  /// Base client cloned for each isolate during spawning
+  http.BaseClient? _client; 
+
   /// Initialize instance 
   /// [isolates] amount of isolates to use
   /// [isolates] should be less than `Platform.numberOfProcessors - 3`
   /// [directory] where to save files, without trailing slash `/`, default to `/tmp`
-  Future<void> init({ int isolates = 3, String? directory }) async {
+  Future<void> init({ int isolates = 3, String? directory, http.BaseClient? client }) async {
     if (initialized) throw Exception("Already initialized");
 
     // Must be set before isolates initializing, otherwise default one will be used
     _directory = directory;
+    _client = client;
 
     await Future.wait([
       for (var i = 0; i < isolates; i++) _initWorker(index: i)
@@ -87,7 +92,7 @@ class DownloadManager {
       pause: () { _pause(request); }
     );
     _queue.add(request);
-    request._controller.add(DownloadState.queued);
+    request._addEvent(DownloadState.queued);
     _processQueue();
     return request;
   }
@@ -97,7 +102,7 @@ class DownloadManager {
     final requests = _queue.toList();
     _queue.clear();
     for (var request in requests) {
-      request._controller.add(DownloadState.cancelled);
+      request._addEvent(DownloadState.cancelled);
       request.isCancelled = true;
     }
     _activeWorkers.forEach((request, worker) { 
@@ -117,7 +122,7 @@ class DownloadManager {
   void _cancel(DownloadRequest request) {
     if (_queue.remove(request)) {
       // removed
-      request._controller.add(DownloadState.cancelled);
+      request._addEvent(DownloadState.cancelled);
       request.isCancelled = true;
     } else {
       // wasn't removed, already in progress
@@ -162,10 +167,10 @@ class DownloadManager {
     await Future.delayed(Duration.zero);
 
     final worker = _workers[index];
-    if (worker.request?._controller.hasListener == true) {
+    /*if (worker.request?._controller.hasListener == true) {
       // worker.event(DownloadEvents.finished);
       worker.request?._controller.close();
-    } 
+    } */
     _activeWorkers.remove(worker.request);
     worker.request = null;
     _freeWorkersIndexes.add(index);
@@ -229,7 +234,9 @@ class DownloadManager {
   void _isolatedWork(SendPort sendPort) {
     final isolatePort = ReceivePort();
     final directory = _directory ?? "/tmp";
-    
+    // clone the client
+    final client = _client ?? http.Client();
+
     DownloadTask? task;
     double previousProgress = -1.0;
     isolatePort.listen((event) {
@@ -254,7 +261,7 @@ class DownloadManager {
           
           // run zoned to catch async download excaptions without breaking isolate
           runZonedGuarded(() async {
-            await DownloadTask.download(url, file: file, deleteOnCancel: true).then((t) {
+            await DownloadTask.download(url, file: file, client: client, deleteOnCancel: true).then((t) {
               task = t;
               task!.events.listen((event) { 
                 switch (event.state) {

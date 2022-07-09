@@ -6,10 +6,18 @@ class DownloadRequest {
   DownloadRequest._({ 
     required this.url, 
     this.path, 
-    required void Function() cancel,
-    required void Function() resume,
-    required void Function() pause,
-  }) : _cancel = cancel, _resume = resume, _pause = pause;
+    required this.cancel,
+    required this.resume,
+    required this.pause,
+  }) {
+    _controller = StreamController.broadcast(onListen: () {
+      if (_lastEvent == null) return;
+      if (_lastEvent is Exception) {
+        _controller.addError(_lastEvent);
+      }
+      _controller.add(_lastEvent);
+    });
+  }
 
   String url;
   String? path;
@@ -22,29 +30,24 @@ class DownloadRequest {
   double progress = -1.0;
   
   /// Stream controller used to forward isolate events to user
-  final StreamController<dynamic> _controller = StreamController<dynamic>();
+  late final StreamController<dynamic> _controller;
   Stream<dynamic> get events => _controller.stream;
 
-  final void Function() _cancel;
-  void cancel() {
-    if (!isCancelled) {
-      _cancel();
-    }
+  void _addEvent(dynamic event) {
+    _controller.add(event);
+    _lastEvent = event;
+  }
+  void _addError(dynamic event) {
+    _controller.addError(event);
+    _lastEvent = event;
   }
 
-  final void Function() _resume;
-  void resume() {
-    if (isPaused && !isCancelled) {
-      _resume();
-      isPaused = false;
-    }
-  }
+  /// Current state
+  dynamic _lastEvent;
+  dynamic get event => _lastEvent;
 
-  final void Function() _pause;
-  void pause() {
-    if (!isPaused && !isCancelled) {
-      _pause();
-      isPaused = true;
-    }
-  }
+  /// Control methods
+  final void Function() cancel;
+  final void Function() resume;
+  final void Function() pause;
 }

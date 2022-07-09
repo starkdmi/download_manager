@@ -8,6 +8,6 @@ class Worker {
   DownloadRequest? request;
 
   /// Shortcuts to communicate with user
-  void event(dynamic event) => request?._controller.add(event);
-  void error(dynamic error) => request?._controller.addError(error);
+  void event(dynamic event) => request?._addEvent(event);
+  void error(dynamic error) => request?._addError(error);
 }

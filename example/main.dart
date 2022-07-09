@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:isolated_download_manager/download_manager.dart';
+import 'package:http/http.dart' as http;
 
 const directory = "/Users/starkdmi/Downloads/test";
 const links = [
@@ -8,11 +9,26 @@ const links = [
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
 ];
 
+/*class CustomClient extends http.BaseClient{
+  CustomClient({ this.defaultHeaders = const {} });
+  final Map<String, String> defaultHeaders;
+
+  final http.Client _httpClient = http.Client();
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers.addAll(defaultHeaders);
+    return _httpClient.send(request);
+  }
+}*/
+
 void main() async {
+  // final client = CustomClient(defaultHeaders: {"foo": "bar"});
+
   // Initialize
   final manager = DownloadManager.instance;
   // Here we create `n` amount of long running isolates available for downloader
-  await manager.init(isolates: 1, directory: directory);
+  await manager.init(isolates: 1, directory: directory); // , client: client
   await Future.delayed(const Duration(seconds: 1));
 
   // Download
@@ -37,20 +53,6 @@ void main() async {
   request.events.listen((event) {
     if (event is DownloadState) {
       print("event: $event");
-      /*switch (event) {
-        case DownloadEvent.queued:
-          break;
-        case DownloadEvent.started:
-          break;
-        case DownloadEvent.paused:
-          break;
-        case DownloadEvent.resumed:
-          break;
-        case DownloadEvent.cancelled:
-          break;
-        case DownloadEvent.finished:
-          break;
-      }*/
     } else if (event is double) {
       print("progress: ${(event * 100.0).toStringAsFixed(0)}%");
     }
@@ -67,7 +69,7 @@ void main() async {
   // request.pause();
   // await Future.delayed(const Duration(milliseconds: 2000));
   // request.resume();
-  // await Future.delayed(const Duration(milliseconds: 5000));
+  // await Future.delayed(const Duration(milliseconds: 2000));
   // request.cancel();
 
   // Properties
