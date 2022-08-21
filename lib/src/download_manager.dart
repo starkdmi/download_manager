@@ -82,11 +82,12 @@ class DownloadManager {
 
   /// Add request to the queue
   /// if [path] is empty base [_directory] used
-  DownloadRequest download(String url, { String? path }) {
+  DownloadRequest download(String url, { String? path, int? filesize }) {
     late final DownloadRequest request;
     request = DownloadRequest._(
       url: url,
       path: path,
+      filesize: filesize,
       cancel: () { _cancel(request); },
       resume: () { _resume(request); },
       pause: () { _pause(request); }
@@ -147,7 +148,8 @@ class DownloadManager {
       // data 
       final Map<String, String> data = {
         "url": link,
-        if (path != null) "path": path
+        if (path != null) "path": path,
+        "size": request.filesize.toString(),
       };
 
       // worker
@@ -245,6 +247,8 @@ class DownloadManager {
         try {
           final Uri url = Uri.parse(event["url"]!);
           final String? path = event["path"];
+          final String? sizeString = event["size"];
+          final int? size = sizeString != null ? int.tryParse(sizeString) : null;
 
           final File file;
           if (path == null) {
@@ -261,7 +265,7 @@ class DownloadManager {
           
           // run zoned to catch async download excaptions without breaking isolate
           runZonedGuarded(() async {
-            await DownloadTask.download(url, file: file, client: client, deleteOnCancel: true).then((t) {
+            await DownloadTask.download(url, file: file, client: client, deleteOnCancel: true, size: size).then((t) {
               task = t;
               task!.events.listen((event) { 
                 switch (event.state) {
