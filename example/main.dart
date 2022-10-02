@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:isolated_download_manager/download_manager.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 
 const directory = "/Users/starkdmi/Downloads/test";
 const links = [
@@ -65,10 +65,10 @@ void main() async {
   });
 
   // Methods
-  // await Future.delayed(const Duration(milliseconds: 2000));
-  // request.pause();
-  // await Future.delayed(const Duration(milliseconds: 2000));
-  // request.resume();
+  await Future.delayed(const Duration(milliseconds: 2000));
+  request.pause();
+  await Future.delayed(const Duration(milliseconds: 2000));
+  request.resume();
   // await Future.delayed(const Duration(milliseconds: 2000));
   // request.cancel();
 
