@@ -58,6 +58,7 @@ class DownloadManager {
     _processQueue();
   }
 
+  /// Clean up the isolates and clear the queue
   Future<void> dispose() async {
     _queue.clear();
 
