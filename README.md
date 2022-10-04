@@ -33,4 +33,4 @@ Example full source code available at [example's directory](example/isolated_dow
 
 ## Additional information
 
-For resumable downloads [download_task](https://pub.dev/packages/download_task) package used
+For resumable downloads [download_task](https://pub.dev/packages/download_task) package is used
