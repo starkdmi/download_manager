@@ -1,7 +1,7 @@
 name: isolated_download_manager
 description: File download manager based on reusable isolates with progress, cancellation, pause and resume
+repository: https://github.com/starkdmi/download_manager
 version: 1.0.0
-publish_to: 'none'
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -9,10 +9,6 @@ environment:
 dependencies:
   http: '>=0.13.0 <=0.13.5'
   download_task: ^1.0.1
-    # path: /Users/starkdmi/Code/Languages/Dart/resumable_download
-    # git:
-    #   url: https://github.com/starkdmi/resumable_download
-    #   ref: main
 
 dev_dependencies:
   lints: ^2.0.0
