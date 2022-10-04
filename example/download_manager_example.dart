@@ -6,8 +6,9 @@ void main() async {
   await DownloadManager.instance.init(isolates: 3);
 
   // Download
-  final request = DownloadManager.instance.download("https://golang.org/dl/go1.19.1.src.tar.gz");
-  
+  final request = DownloadManager.instance
+      .download("https://golang.org/dl/go1.19.1.src.tar.gz");
+
   // Listen
   request.events.listen((event) {
     if (event is DownloadState) {
@@ -34,7 +35,7 @@ void main() async {
   print(request.isPaused);
   print(request.isCancelled);
 
-  // List queued requests 
+  // List queued requests
   print(DownloadManager.instance.queue);
 }
 

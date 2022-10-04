@@ -9,8 +9,8 @@ const links = [
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
 ];
 
-class CustomClient extends http.BaseClient{
-  CustomClient({ this.defaultHeaders = const {} });
+class CustomClient extends http.BaseClient {
+  CustomClient({this.defaultHeaders = const {}});
   final Map<String, String> defaultHeaders;
 
   final http.Client _httpClient = http.Client();
@@ -23,7 +23,7 @@ class CustomClient extends http.BaseClient{
 }
 
 void main() async {
-  final client = CustomClient(defaultHeaders: { "Cookie": "foo=bar" });
+  final client = CustomClient(defaultHeaders: {"Cookie": "foo=bar"});
 
   // Initialize
   final manager = DownloadManager.instance;
@@ -48,7 +48,7 @@ void main() async {
       }
     }*/
   }
-  
+
   // Progress
   request.events.listen((event) {
     if (event is DownloadState) {
@@ -77,6 +77,6 @@ void main() async {
   // print(request.isPaused);
   // print(request.isCancelled);
 
-  // List queued requests 
+  // List queued requests
   // print(manager.queue)
 }

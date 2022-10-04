@@ -1,8 +1,8 @@
 part of 'package:isolated_download_manager/src/download_manager.dart';
 
-/// [Worker] class stores long live isolate reference and current [DownloadRequest] if any 
+/// [Worker] class stores long live isolate reference and current [DownloadRequest] if any
 class Worker {
-  Worker({ required this.isolate, required this.port });
+  Worker({required this.isolate, required this.port});
   final Isolate isolate;
   final SendPort port;
   DownloadRequest? request;

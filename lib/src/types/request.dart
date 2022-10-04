@@ -3,9 +3,9 @@ part of 'package:isolated_download_manager/src/download_manager.dart';
 /// Request created by adding url to downloading queue
 /// Used for communication with [DownloadManager] and internally [Isolate]
 class DownloadRequest {
-  DownloadRequest._({ 
-    required this.url, 
-    this.path, 
+  DownloadRequest._({
+    required this.url,
+    this.path,
     this.filesize,
     this.safeRange,
     required this.cancel,
@@ -32,7 +32,7 @@ class DownloadRequest {
   /// Progress with ceiling
   /// `-1.0` for queued process and values in range [0.0, 1.0]
   double progress = -1.0;
-  
+
   /// Stream controller used to forward isolate events to user
   late final StreamController<dynamic> _controller;
   Stream<dynamic> get events => _controller.stream;
@@ -41,6 +41,7 @@ class DownloadRequest {
     _controller.add(event);
     _lastEvent = event;
   }
+
   void _addError(dynamic event) {
     _controller.addError(event);
     _lastEvent = event;

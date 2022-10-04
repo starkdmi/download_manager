@@ -31,7 +31,7 @@ void main() async {
       }
     }*/
   }
-  
+
   // Progress
   request.events.listen((event) {
     if (event is DownloadState) {
@@ -60,6 +60,6 @@ void main() async {
   // print(request.isPaused);
   // print(request.isCancelled);
 
-  // List queued requests 
+  // List queued requests
   // print(manager.queue)
 }

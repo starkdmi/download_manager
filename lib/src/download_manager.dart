@@ -10,7 +10,6 @@ part 'package:isolated_download_manager/src/types/worker.dart';
 part 'package:isolated_download_manager/src/types/comm.dart';
 
 class DownloadManager {
-
   /// Singletone
   DownloadManager._();
   static final DownloadManager instance = DownloadManager._();
@@ -22,20 +21,24 @@ class DownloadManager {
   bool initialized = false;
 
   /// Base directory where to save files
-  String? _directory; 
+  String? _directory;
 
   /// Base client cloned for each isolate during spawning
-  http.BaseClient? _client; 
+  http.BaseClient? _client;
 
   /// Global [safeRange] setting, will be skipped if passed into `download()` function
   bool _safeRange = true;
 
-  /// Initialize instance 
+  /// Initialize instance
   /// [isolates] amount of isolates to use
   /// [isolates] should be less than `Platform.numberOfProcessors - 3`
   /// [directory] where to save files, without trailing slash `/`, default to `/tmp`
   /// [safeRange] used to skip range header if bytes end not found
-  Future<void> init({ int isolates = 3, String? directory, http.BaseClient? client, bool? safeRange }) async {
+  Future<void> init(
+      {int isolates = 3,
+      String? directory,
+      http.BaseClient? client,
+      bool? safeRange}) async {
     if (initialized) throw Exception("Already initialized");
 
     // Must be set before isolates initializing, otherwise default one will be used
@@ -43,9 +46,9 @@ class DownloadManager {
     _client = client;
     if (safeRange != null) _safeRange = safeRange;
 
-    await Future.wait([
-      for (var i = 0; i < isolates; i++) _initWorker(index: i)
-    ]).then(_workers.addAll);
+    await Future.wait(
+            [for (var i = 0; i < isolates; i++) _initWorker(index: i)])
+        .then(_workers.addAll);
 
     for (var i = 0; i < isolates; i++) {
       _freeWorkersIndexes.add(i);
@@ -58,14 +61,14 @@ class DownloadManager {
   Future<void> dispose() async {
     _queue.clear();
 
-    for (var worker in _workers) { 
+    for (var worker in _workers) {
       worker.isolate.kill();
     }
-    _activeWorkers.forEach((request, worker) { 
+    _activeWorkers.forEach((request, worker) {
       Future.delayed(const Duration(milliseconds: 50))
-        .then((_) => worker.port.send(WorkerCommand.cancel));
+          .then((_) => worker.port.send(WorkerCommand.cancel));
       Future.delayed(const Duration(milliseconds: 100))
-        .then((_) => worker.isolate.kill());
+          .then((_) => worker.isolate.kill());
     });
     await Future.delayed(const Duration(milliseconds: 100));
     _workers.clear();
@@ -75,8 +78,9 @@ class DownloadManager {
     initialized = false;
   }
 
-  /// Queue of requests 
+  /// Queue of requests
   final _queue = Queue<DownloadRequest>();
+
   /// Queued requests (unmodifiable)
   List<DownloadRequest> get queue => _queue.toList();
 
@@ -87,17 +91,23 @@ class DownloadManager {
 
   /// Add request to the queue
   /// if [path] is empty base [_directory] used
-  DownloadRequest download(String url, { String? path, int? filesize, bool? safeRange }) {
+  DownloadRequest download(String url,
+      {String? path, int? filesize, bool? safeRange}) {
     late final DownloadRequest request;
     request = DownloadRequest._(
-      url: url,
-      path: path,
-      filesize: filesize,
-      safeRange: safeRange,
-      cancel: () { _cancel(request); },
-      resume: () { _resume(request); },
-      pause: () { _pause(request); }
-    );
+        url: url,
+        path: path,
+        filesize: filesize,
+        safeRange: safeRange,
+        cancel: () {
+          _cancel(request);
+        },
+        resume: () {
+          _resume(request);
+        },
+        pause: () {
+          _pause(request);
+        });
     _queue.add(request);
     request._addEvent(DownloadState.queued);
     _processQueue();
@@ -112,7 +122,7 @@ class DownloadManager {
       request._addEvent(DownloadState.cancelled);
       request.isCancelled = true;
     }
-    _activeWorkers.forEach((request, worker) { 
+    _activeWorkers.forEach((request, worker) {
       worker.port.send(WorkerCommand.cancel);
       // ensure if wasn't cancelled due to pre-started downloading state
       for (final delay in [500, 1000, 1500]) {
@@ -137,11 +147,13 @@ class DownloadManager {
     }
   }
 
-  /// Send pause request to isolate if exists 
-  void _pause(DownloadRequest request) => _activeWorkers[request]?.port.send(WorkerCommand.pause);
+  /// Send pause request to isolate if exists
+  void _pause(DownloadRequest request) =>
+      _activeWorkers[request]?.port.send(WorkerCommand.pause);
 
-  /// Send resume request to isolate if exists 
-  void _resume(DownloadRequest request) => _activeWorkers[request]?.port.send(WorkerCommand.resume);
+  /// Send resume request to isolate if exists
+  void _resume(DownloadRequest request) =>
+      _activeWorkers[request]?.port.send(WorkerCommand.resume);
 
   /// Process queued requests
   void _processQueue() {
@@ -152,7 +164,7 @@ class DownloadManager {
       final path = request.path;
       final safeRange = request.safeRange;
 
-      // data 
+      // data
       final Map<String, String> data = {
         "url": link,
         if (path != null) "path": path,
@@ -188,7 +200,7 @@ class DownloadManager {
   }
 
   /// Initialize long running isolate with two-way communication channel
-  Future<Worker> _initWorker({ required int index }) async {
+  Future<Worker> _initWorker({required int index}) async {
     final completer = Completer<Worker>();
     final mainPort = ReceivePort();
     late final Isolate isolate;
@@ -200,11 +212,11 @@ class DownloadManager {
         process = Worker(isolate: isolate, port: event);
         completer.complete(process);
       } else if (event is Exception) {
-        // errors 
+        // errors
         process?.error(event);
         _cleanWorker(index);
       } else if (event is DownloadState) {
-        // other incoming messages from isolate 
+        // other incoming messages from isolate
         switch (event) {
           case DownloadState.cancelled:
             process?.event(event);
@@ -226,7 +238,8 @@ class DownloadManager {
             process?.event(event);
             process?.request?.isPaused = true;
             break;
-          default: break;
+          default:
+            break;
         }
       } else if (event is double) {
         // states
@@ -234,9 +247,9 @@ class DownloadManager {
         process?.request?.progress = event;
       }
     });
-    
+
     isolate = await Isolate.spawn(_isolatedWork, mainPort.sendPort);
-    
+
     return completer.future;
   }
 
@@ -256,7 +269,8 @@ class DownloadManager {
           final Uri url = Uri.parse(event["url"]!);
           final String? path = event["path"];
           final String? sizeString = event["size"];
-          final int? size = sizeString != null ? int.tryParse(sizeString) : null;
+          final int? size =
+              sizeString != null ? int.tryParse(sizeString) : null;
 
           bool safeRange = _safeRange;
           final String? safe = event["safeRange"];
@@ -268,7 +282,8 @@ class DownloadManager {
           if (path == null) {
             // use base directory, extract name from url
             final lastSegment = url.pathSegments.last;
-            final filename = lastSegment.substring(lastSegment.lastIndexOf("/") + 1);
+            final filename =
+                lastSegment.substring(lastSegment.lastIndexOf("/") + 1);
             file = File("$directory/$filename");
           } else {
             // custom location
@@ -276,23 +291,31 @@ class DownloadManager {
             // final filename = file.uri.pathSegments.last;
           }
           previousProgress = -1.0;
-          
+
           // run zoned to catch async download excaptions without breaking isolate
           runZonedGuarded(() async {
-            await DownloadTask.download(url, file: file, client: client, deleteOnCancel: true, size: size, safeRange: safeRange).then((t) {
+            await DownloadTask.download(url,
+                    file: file,
+                    client: client,
+                    deleteOnCancel: true,
+                    size: size,
+                    safeRange: safeRange)
+                .then((t) {
               task = t;
-              task!.events.listen((event) { 
+              task!.events.listen((event) {
                 switch (event.state) {
                   case TaskState.downloading:
                     final bytesReceived = event.bytesReceived!;
                     final totalBytes = event.totalBytes!;
-                    
+
                     double progress;
                     if (totalBytes == -1) {
                       // total is undefined
                       progress = 0.0;
                     } else {
-                      progress = (bytesReceived / totalBytes * 100).floorToDouble() / 100;
+                      progress =
+                          (bytesReceived / totalBytes * 100).floorToDouble() /
+                              100;
                     }
 
                     // skip duplicates
@@ -317,8 +340,7 @@ class DownloadManager {
               });
               sendPort.send(DownloadState.started);
             });
-          }, (e, s) => sendPort.send(e));  
-          
+          }, (e, s) => sendPort.send(e));
         } catch (error) {
           // catch sync exception
           sendPort.send(error);
