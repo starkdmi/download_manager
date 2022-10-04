@@ -1,4 +1,4 @@
-part of 'package:isolated_download_manager/src/download_manager.dart';
+part of '../isolated_download_manager.dart';
 
 /// Request created by adding url to downloading queue
 /// Used for communication with [DownloadManager] and internally [Isolate]

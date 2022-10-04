@@ -1,4 +1,4 @@
-part of 'package:isolated_download_manager/src/download_manager.dart';
+part of '../isolated_download_manager.dart';
 
 /// Communication types
 /// User <-> DownloadManager <-> Isolate

@@ -1,4 +1,4 @@
-part of 'package:isolated_download_manager/src/download_manager.dart';
+part of '../isolated_download_manager.dart';
 
 /// [Worker] class stores long live isolate reference and current [DownloadRequest] if any
 class Worker {

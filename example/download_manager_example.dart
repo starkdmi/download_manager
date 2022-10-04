@@ -1,5 +1,5 @@
 import 'dart:io' show exit;
-import 'package:isolated_download_manager/download_manager.dart';
+import 'package:isolated_download_manager/isolated_download_manager.dart';
 
 void main() async {
   // Initialize

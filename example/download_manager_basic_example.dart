@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:isolated_download_manager/download_manager.dart';
+import 'package:isolated_download_manager/isolated_download_manager.dart';
 
 final directory = "${Directory.current.path}/example";
 const links = [

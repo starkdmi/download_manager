@@ -5,9 +5,9 @@ import 'dart:isolate';
 import 'package:download_task/download_task.dart';
 import 'package:http/http.dart' as http;
 
-part 'package:isolated_download_manager/src/types/request.dart';
-part 'package:isolated_download_manager/src/types/worker.dart';
-part 'package:isolated_download_manager/src/types/comm.dart';
+part 'types/request.dart';
+part 'types/worker.dart';
+part 'types/comm.dart';
 
 class DownloadManager {
   /// Singletone
