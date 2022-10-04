@@ -3,11 +3,13 @@ import 'package:isolated_download_manager/isolated_download_manager.dart';
 
 void main() async {
   // Initialize
-  await DownloadManager.instance.init(isolates: 3);
+  await DownloadManager.instance.init(
+    isolates: 3,
+  );
 
   // Download
   final request = DownloadManager.instance
-      .download("https://golang.org/dl/go1.19.1.src.tar.gz");
+      .download("https://golang.org/dl/go1.19.1.src.tar.gz", path: "Go.tar.gz");
 
   // Listen
   request.events.listen((event) {
