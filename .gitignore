@@ -16,7 +16,3 @@ doc/api/
 
 # Code coverage
 coverage/
-
-# Dev files
-example/isolated_download_manager_basic_example.dart
-example/isolated_download_manager_auth_example.dart
