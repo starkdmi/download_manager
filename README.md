@@ -1,39 +1,36 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+File download manager based on reusable isolates with progress, cancellation, pause and resume
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Fully isolated** - create any amount of reusable isolates, all handled internally
+- **Powerfull** - pause, resume, cancel, download queue and many more
+- **Listen to updates** - realtime progress and failure handling
+- **UI** - use ready-to-use Flutter widgets (optionally via [isolated_download_manager_flutter](https://pub.dev/packages/isolated_download_manager_flutter))
+- **Pure Dart** - only `http` dependency 
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Include latest version from [pub.dev](https://pub.dev/packages/isolated_download_manager) to `pubspec.yaml`
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
 ```dart
-const like = 'sample';
+// initialize
+await DownloadManager.instance.init(isolates: 3);
+
+// download
+final request = DownloadManager.instance.download(url);
+
+// listen to state changes
+request.events.listen((event) { ... }
+
+// control the task
+request.pause();
+request.resume();
+request.cancel();
 ```
+Example full source code available at [example's directory](example/isolated_download_manager_example.dart)
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+For resumable downloads [download_task](https://pub.dev/packages/download_task) package used
