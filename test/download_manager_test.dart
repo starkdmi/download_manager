@@ -1,4 +1,4 @@
-import 'package:isolated_download_manager/download_manager.dart';
+import 'package:isolated_download_manager/isolated_download_manager.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -6,7 +6,7 @@ void main() {
     final manager = DownloadManager.instance;
 
     setUp(() async {
-      await manager.init(isolates: 2, directory: "/Users/starkdmi/Downloads/test");
+      await manager.init(isolates: 2);
       await Future.delayed(const Duration(seconds: 1));
     });
 
@@ -14,12 +14,14 @@ void main() {
       await manager.dispose();
     });
 
-    // To take control of isolates use
-    // import 'package:meta/meta.dart'; // meta 1.8.0
-    // @visibleForTesting final int value;
-
     test("Initialized", () {
       expect(manager.initialized, isTrue);
+    });
+
+    test("Disposed", () async {
+      await manager.dispose();
+      expect(manager.queue, isEmpty);
+      expect(manager.initialized, isFalse);
     });
   });
 }
