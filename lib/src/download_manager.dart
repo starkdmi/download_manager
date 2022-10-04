@@ -27,16 +27,21 @@ class DownloadManager {
   /// Base client cloned for each isolate during spawning
   http.BaseClient? _client; 
 
+  /// Global [safeRange] setting, will be skipped if passed into `download()` function
+  bool _safeRange = true;
+
   /// Initialize instance 
   /// [isolates] amount of isolates to use
   /// [isolates] should be less than `Platform.numberOfProcessors - 3`
   /// [directory] where to save files, without trailing slash `/`, default to `/tmp`
-  Future<void> init({ int isolates = 3, String? directory, http.BaseClient? client }) async {
+  /// [safeRange] used to skip range header if bytes end not found
+  Future<void> init({ int isolates = 3, String? directory, http.BaseClient? client, bool? safeRange }) async {
     if (initialized) throw Exception("Already initialized");
 
     // Must be set before isolates initializing, otherwise default one will be used
     _directory = directory;
     _client = client;
+    if (safeRange != null) _safeRange = safeRange;
 
     await Future.wait([
       for (var i = 0; i < isolates; i++) _initWorker(index: i)
@@ -82,12 +87,13 @@ class DownloadManager {
 
   /// Add request to the queue
   /// if [path] is empty base [_directory] used
-  DownloadRequest download(String url, { String? path, int? filesize }) {
+  DownloadRequest download(String url, { String? path, int? filesize, bool? safeRange }) {
     late final DownloadRequest request;
     request = DownloadRequest._(
       url: url,
       path: path,
       filesize: filesize,
+      safeRange: safeRange,
       cancel: () { _cancel(request); },
       resume: () { _resume(request); },
       pause: () { _pause(request); }
@@ -144,12 +150,14 @@ class DownloadManager {
       final request = _queue.removeFirst();
       final link = request.url;
       final path = request.path;
+      final safeRange = request.safeRange;
 
       // data 
       final Map<String, String> data = {
         "url": link,
         if (path != null) "path": path,
         "size": request.filesize.toString(),
+        if (safeRange != null) "safeRange": safeRange.toString(),
       };
 
       // worker
@@ -250,6 +258,12 @@ class DownloadManager {
           final String? sizeString = event["size"];
           final int? size = sizeString != null ? int.tryParse(sizeString) : null;
 
+          bool safeRange = _safeRange;
+          final String? safe = event["safeRange"];
+          if (safe != null) {
+            safeRange = safe == "true" ? true : false;
+          }
+
           final File file;
           if (path == null) {
             // use base directory, extract name from url
@@ -265,7 +279,7 @@ class DownloadManager {
           
           // run zoned to catch async download excaptions without breaking isolate
           runZonedGuarded(() async {
-            await DownloadTask.download(url, file: file, client: client, deleteOnCancel: true, size: size).then((t) {
+            await DownloadTask.download(url, file: file, client: client, deleteOnCancel: true, size: size, safeRange: safeRange).then((t) {
               task = t;
               task!.events.listen((event) { 
                 switch (event.state) {

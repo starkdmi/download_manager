@@ -7,6 +7,7 @@ class DownloadRequest {
     required this.url, 
     this.path, 
     this.filesize,
+    this.safeRange,
     required this.cancel,
     required this.resume,
     required this.pause,
@@ -23,6 +24,7 @@ class DownloadRequest {
   String url;
   String? path;
   int? filesize;
+  bool? safeRange;
 
   bool isPaused = false;
   bool isCancelled = false;
