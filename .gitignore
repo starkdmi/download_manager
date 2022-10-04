@@ -26,3 +26,7 @@ doc/api/
 *.js_
 *.js.deps
 *.js.map
+
+# Dev files
+example/isolated_download_manager_basic_example.dart
+example/isolated_download_manager_auth_example.dart

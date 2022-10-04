@@ -35,8 +35,9 @@ void main() async {
   print(request.isPaused);
   print(request.isCancelled);
 
-  // List queued requests
-  print(DownloadManager.instance.queue);
+  // Static methods
+  print(DownloadManager.instance.queue); // list queued requests
+  DownloadManager.instance.cancelAll(); // cancel all downloads
 }
 
 // Clean-up isolates and exit
