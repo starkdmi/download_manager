@@ -1,13 +1,13 @@
 name: isolated_download_manager
 description: File download manager based on reusable isolates with progress, cancellation, pause and resume
 repository: https://github.com/starkdmi/download_manager
-version: 1.0.1
+version: 1.0.2
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  download_task: ^1.0.1
+  download_task: ^1.0.2
   http: '>=0.13.0 <=0.13.5'
   
 dev_dependencies:
