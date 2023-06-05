@@ -10,3 +10,7 @@
 ## 1.0.2
 
 * Update download_task to latest version
+
+## 1.0.3
+
+* Update dependencies for the Dart 3 support
