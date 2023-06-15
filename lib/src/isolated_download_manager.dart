@@ -246,6 +246,7 @@ class DownloadManager {
         // states
         process?.event(event);
         process?.request?.progress = event;
+        process?.request?.isPaused = false;
       }
     });
 
